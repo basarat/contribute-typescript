@@ -1,39 +1,27 @@
 #!/bin/sh
 set -e
 
+tsUpstream='https://github.com/Microsoft/TypeScript.git'
+tsClone='https://github.com/basarat/TypeScript.git'
+
 git submodule update --recursive --init
 
 # Official Microsoft/TypeScript clone
 cd ./TypeScript
 
-git clean -xfd
-git fetch origin
-git reset --hard origin/master
+git remote rm origin
+git remote rm upstream
+# Set upstream
+git remote add -f upstream $tsUpstream
+# Set origin
+git remote add -f origin $tsClone
 
-# Fix jakefile to expose the internal APIs to service
-< Jakefile.js > Jakefile.new.js sed -E "s/\*stripInternal\*\/ true/\*stripInternal\*\/ false/"
-mv Jakefile.new.js Jakefile.js
-
-# Install jake
-npm install jake
-
-# Build once to get a new LKG
-./node_modules/.bin/jake release tsc --trace
-cp ./built/local/* ./bin/
-
-# Copy the source TypeScript compiler and services, but not the tsconfig.json files
-cp ./src/compiler/* ../src/compiler
-cp -r ./src/services/* ../src/services
-rm ../src/services/tsconfig.json ../src/compiler/tsconfig.json
-# Now build using the LKG
-./bin/tsc -p ../src
-./bin/tsc -p ../extensions
-
-# Also copy the lib.* stuff from LKG
-cp ./bin/lib* ../bin
+git fetch upstream
+git reset --hard upstream/master
+npm install
 
 # add custom extension
-node ../extensions/addExtensions.js
+# node ../extensions/addExtensions.js
 
 # Reset sub typescript
 git reset --hard origin/master
