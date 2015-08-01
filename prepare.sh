@@ -23,6 +23,4 @@ npm install
 # add custom extension
 # node ../extensions/addExtensions.js
 
-# Reset sub typescript
-git reset --hard origin/master
 cd ..
